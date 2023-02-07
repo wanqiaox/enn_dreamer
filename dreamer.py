@@ -23,6 +23,8 @@ from torch import nn
 from torch import distributions as torchd
 to_np = lambda x: x.detach().cpu().numpy()
 
+os.environ["IMAGEIO_FFMPEG_EXE"] = r"MyFFMPEG_PATH"
+
 
 class Dreamer(nn.Module):
 
@@ -71,6 +73,7 @@ class Dreamer(nn.Module):
       steps = (
           self._config.pretrain if self._should_pretrain()
           else self._config.train_steps)
+          
       for _ in range(steps):
         self._train(next(self._dataset))
       if self._should_log(step):
@@ -140,8 +143,9 @@ class Dreamer(nn.Module):
       start = {k: v[:, :-1] for k, v in post.items()}
       context = {k: v[:, :-1] for k, v in context.items()}
     reward = lambda f, s, a: self._wm.heads['reward'](
-        self._wm.dynamics.get_feat(s)).mode()
+          self._wm.dynamics.get_feat(s)).mode()
     metrics.update(self._task_behavior._train(start, reward)[-1])
+    
     if self._config.expl_behavior != 'greedy':
       if self._config.pred_discount:
         data = {k: v[:, :-1] for k, v in data.items()}
@@ -279,8 +283,8 @@ def main(config):
   eval_dataset = make_dataset(eval_eps, config)
   agent = Dreamer(config, logger, train_dataset).to(config.device)
   agent.requires_grad_(requires_grad=False)
-  if (logdir / 'latest_model.pt').exists():
-    agent.load_state_dict(torch.load(logdir / 'latest_model.pt'))
+  if (logdir / config.load_model).exists():
+    agent.load_state_dict(torch.load(logdir / config.load_model))
     agent._should_pretrain._once = False
 
   state = None
@@ -290,10 +294,10 @@ def main(config):
     video_pred = agent._wm.video_pred(next(eval_dataset))
     logger.video('eval_openl', to_np(video_pred))
     eval_policy = functools.partial(agent, training=False)
-    tools.simulate(eval_policy, eval_envs, episodes=1)
+    tools.simulate(eval_policy, eval_envs, episodes=1) # evaluation: observes env reward
     print('Start training.')
     state = tools.simulate(agent, train_envs, config.eval_every, state=state)
-    torch.save(agent.state_dict(), logdir / 'latest_model.pt')
+    torch.save(agent.state_dict(), logdir / config.save_model)
   for env in train_envs + eval_envs:
     try:
       env.close()

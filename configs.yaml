@@ -61,6 +61,8 @@ defaults:
   discount_scale: 1.0
   reward_scale: 1.0
   weight_decay: 0.0
+  save_model: 'latest_model.pt'
+  load_model: 'latest_model.pt'
 
   # Training
   batch_size: 50
@@ -188,8 +190,7 @@ atari:
   time_limit: 108000  # 30 minutes of game play.
   grayscale: True
   action_repeat: 4
-  eval_noise: 0.0
-  train_every: 16
+  eval_noisepretrained_modely: 16
   train_steps: 1
   clip_rewards: 'tanh'
 
@@ -283,3 +284,27 @@ debug:
   batch_size: 10
   batch_length: 20
 
+p2e_pretrain:
+  grad_heads: ['image']
+  expl_behavior: 'plan2explore'
+  expl_until: 1e6
+  steps: 1e6
+  expl_amount: 0.0 # epsilon-greedy amount
+  disag_action_cond: True
+  save_model: 'pretrained_model.pt'
+
+p2e_reward:
+  grad_heads: ['image', 'reward']
+  expl_behavior: 'plan2explore'
+  expl_until: 1e7
+  steps: 1e7
+  expl_amount: 0.0 # epsilon-greedy amount
+  disag_action_cond: True
+
+p2e_fewshot:
+  expl_behavior: 'plan2explore'
+  expl_until: 1000
+  steps: 1000
+  expl_amount: 0.0
+  diag_action_cond: True
+  load_model: 'pretrained_model.pt'

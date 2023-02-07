@@ -143,7 +143,7 @@ def simulate(agent, envs, steps=0, episodes=0, state=None):
     assert len(action) == len(envs)
     # Step envs.
     results = [e.step(a) for e, a in zip(envs, action)]
-    obs, reward, done = zip(*[p[:3] for p in results])
+    obs, reward, done = zip(*[p[:3] for p in results]) # observe environment reward
     obs = list(obs)
     reward = list(reward)
     done = np.stack(done)

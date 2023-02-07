@@ -148,6 +148,7 @@ class ImagBehavior(nn.Module):
         config.num_actions, config.actor_layers, config.units, config.act,
         config.actor_dist, config.actor_init_std, config.actor_min_std,
         config.actor_dist, config.actor_temp, config.actor_outscale)
+        
     self.value = networks.DenseHead(
         feat_size,  # pytorch version
         [], config.value_layers, config.units, config.act,
